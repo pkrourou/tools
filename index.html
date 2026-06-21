@@ -6,21 +6,29 @@
     <title>9-Patch 点九图测试工具</title>
     <style>
       :root {
-        --bg: #0b1020;
-        --panel: rgba(255, 255, 255, 0.06);
-        --panel-2: rgba(255, 255, 255, 0.1);
-        --text: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.65);
-        --faint: rgba(255, 255, 255, 0.4);
-        --accent: #7cf2d0;
-        --accent-2: #a78bfa;
+        --bg: #141517;
+        --bg-2: #1b1d20;
+        --panel: #17181b;
+        --panel-2: #1d1f23;
+        --panel-3: #23262b;
+        --text: #ffffff;
+        --muted: rgba(255, 255, 255, 0.7);
+        --faint: rgba(255, 255, 255, 0.48);
+        --accent: #ffffff;
+        --accent-strong: #ffffff;
+        --accent-2: #ff3d8b;
+        --accent-2-strong: #ff3d8b;
         --danger: #fb7185;
         --stroke: rgba(255, 255, 255, 0.14);
-        --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        --stroke-strong: rgba(255, 255, 255, 0.24);
+        --shadow: none;
+        --glow: 0 0 0 4px rgba(255, 61, 139, 0.22);
         --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
           monospace;
-        --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
-          "Noto Sans CJK SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+        --sans: Inter, "Avenir Next", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC",
+          "Microsoft YaHei", "Segoe UI", sans-serif;
+        --display: Inter, "Avenir Next", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC",
+          "Microsoft YaHei", "Segoe UI", sans-serif;
       }
 
       * {
@@ -33,106 +41,189 @@
         margin: 0;
         color: var(--text);
         font-family: var(--sans);
-        background: radial-gradient(1200px 700px at 20% 10%, rgba(124, 242, 208, 0.18), transparent 55%),
-          radial-gradient(1000px 600px at 70% 0%, rgba(167, 139, 250, 0.16), transparent 60%),
-          radial-gradient(900px 600px at 60% 90%, rgba(251, 113, 133, 0.08), transparent 55%), var(--bg);
+        background:
+          radial-gradient(640px 420px at 18% 12%, rgba(121, 136, 168, 0.18), transparent 60%),
+          radial-gradient(680px 520px at 84% 88%, rgba(75, 82, 96, 0.16), transparent 62%),
+          linear-gradient(180deg, #191b1f 0%, #141517 100%);
         overflow: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 40px 40px;
+        opacity: 0.12;
+      }
+
+      ::selection {
+        background: rgba(255, 61, 139, 0.24);
+      }
+
+      *::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      *::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+
+      *::-webkit-scrollbar-track {
+        background: transparent;
       }
 
       .app {
         height: 100%;
         display: grid;
-        grid-template-columns: 360px 1fr;
-        gap: 14px;
-        padding: 14px;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 24px;
+        padding: 24px;
       }
 
       .panel {
+        order: 2;
         border: 1px solid var(--stroke);
-        border-radius: 16px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(29, 31, 35, 0.96), rgba(20, 22, 25, 0.98));
         box-shadow: var(--shadow);
         overflow: hidden;
+        backdrop-filter: blur(20px);
       }
 
       .panel .hd {
-        padding: 14px 14px 12px;
+        padding: 24px 24px 18px;
         border-bottom: 1px solid var(--stroke);
         display: flex;
-        align-items: baseline;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 12px;
       }
 
       .title {
-        font-size: 14px;
-        letter-spacing: 0.5px;
+        font-family: var(--display);
+        font-size: 26px;
+        line-height: 1.35;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+        text-transform: none;
+      }
+
+      .heroMeta {
+        display: grid;
+        gap: 6px;
       }
 
       .subtitle {
-        font-size: 12px;
+        font-size: 16px;
         color: var(--muted);
-        font-family: var(--mono);
+        font-family: var(--sans);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 190px;
+        max-width: 220px;
+      }
+
+      .statusPill {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .statusPill.ready {
+        color: #ffffff;
+        border-color: rgba(255, 61, 139, 0.32);
+        background: rgba(255, 61, 139, 0.16);
+        box-shadow: none;
       }
 
       .panel .bd {
-        padding: 14px;
+        padding: 20px 24px 24px;
         overflow: auto;
-        height: calc(100% - 52px);
+        height: calc(100% - 72px);
       }
 
       .drop {
-        border-radius: 14px;
-        border: 1px dashed rgba(255, 255, 255, 0.24);
+        border-radius: 18px;
+        border: 1px dashed rgba(255, 255, 255, 0.16);
         background: rgba(255, 255, 255, 0.04);
-        padding: 14px;
+        padding: 16px;
         display: grid;
-        gap: 10px;
-        transition: 140ms ease;
+        gap: 12px;
+        transition: 180ms ease;
+        box-shadow: none;
       }
 
       .drop.drag {
-        border-color: rgba(124, 242, 208, 0.6);
-        background: rgba(124, 242, 208, 0.1);
-        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+        box-shadow: var(--glow);
       }
 
       .drop .hint {
-        font-size: 12px;
+        font-size: 14px;
         color: var(--muted);
-        line-height: 1.35;
+        line-height: 1.43;
       }
 
       .btn {
         appearance: none;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: transparent;
         color: var(--text);
-        border-radius: 12px;
-        padding: 10px 12px;
+        border-radius: 999px;
+        padding: 11px 18px;
         cursor: pointer;
-        font-weight: 600;
-        letter-spacing: 0.2px;
-        transition: 140ms ease;
+        font-weight: 480;
+        font-size: 18px;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        box-shadow: none;
       }
 
       .btn:hover {
-        background: rgba(255, 255, 255, 0.12);
-        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.36);
+        transform: none;
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.48;
+        cursor: not-allowed;
+        transform: none;
       }
 
       .btn.primary {
-        border-color: rgba(124, 242, 208, 0.35);
-        background: linear-gradient(180deg, rgba(124, 242, 208, 0.22), rgba(124, 242, 208, 0.12));
+        border-color: #ffffff;
+        background: #ffffff;
+        color: #000000;
+      }
+
+      .btn.primary:hover {
+        background: #f1f1f1;
+        border-color: #f1f1f1;
       }
 
       .btn.ghost {
         background: transparent;
-        border-color: rgba(255, 255, 255, 0.16);
+        border-color: rgba(255, 255, 255, 0.2);
       }
 
       .row {
@@ -158,7 +249,7 @@
       .label .meta {
         font-family: var(--mono);
         color: var(--faint);
-        font-size: 11px;
+        font-size: 10px;
       }
 
       input[type="number"],
@@ -166,27 +257,30 @@
       input[type="text"],
       textarea {
         width: 100%;
-        padding: 10px 11px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        background: rgba(0, 0, 0, 0.18);
-        color: var(--text);
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.06);
+        color: #ffffff;
         outline: none;
-        font-family: var(--mono);
+        font-family: var(--sans);
+        font-size: 18px;
+        line-height: 1.47;
+        box-shadow: none;
       }
 
       input[type="number"]:focus,
       select:focus,
       input[type="text"]:focus,
       textarea:focus {
-        border-color: rgba(124, 242, 208, 0.5);
-        box-shadow: 0 0 0 4px rgba(124, 242, 208, 0.1);
+        border-color: rgba(255, 61, 139, 0.34);
+        box-shadow: var(--glow);
       }
 
       .switches {
         display: grid;
-        gap: 8px;
-        margin-top: 10px;
+        gap: 10px;
+        margin-top: 4px;
       }
 
       .switch {
@@ -194,48 +288,85 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 10px 12px;
-        border-radius: 12px;
+        padding: 14px 16px;
+        border-radius: 16px;
         border: 1px solid rgba(255, 255, 255, 0.14);
         background: rgba(255, 255, 255, 0.04);
+        transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+      }
+
+      .switch:hover {
+        border-color: var(--stroke-strong);
+        transform: none;
       }
 
       .switch span {
-        font-size: 12px;
+        font-size: 14px;
         color: var(--muted);
       }
 
       .switch input {
-        width: 18px;
-        height: 18px;
+        appearance: none;
+        width: 38px;
+        height: 22px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: rgba(255, 255, 255, 0.22);
+        position: relative;
+        cursor: pointer;
+        transition: background 160ms ease, border-color 160ms ease;
+      }
+
+      .switch input::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ffffff;
+        transition: transform 160ms ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+      }
+
+      .switch input:checked {
+        background: var(--accent-2);
+        border-color: var(--accent-2);
+      }
+
+      .switch input:checked::after {
+        transform: translateX(16px);
       }
 
       .card {
-        border: 1px solid var(--stroke);
-        border-radius: 16px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-        box-shadow: var(--shadow);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
+        background: rgba(18, 19, 22, 0.96);
+        box-shadow: none;
         overflow: hidden;
+        backdrop-filter: none;
       }
 
       .card .hd {
-        padding: 12px 14px;
+        padding: 14px 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        border-bottom: 1px solid var(--stroke);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .card .hd .name {
-        font-size: 13px;
-        letter-spacing: 0.2px;
+        font-size: 14px;
+        letter-spacing: 0;
+        color: #ffffff;
       }
 
       .card .hd .size {
-        font-size: 11px;
+        font-size: 12px;
         font-family: var(--mono);
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.7);
       }
 
       .card .bd {
@@ -243,10 +374,11 @@
       }
 
       .grid {
+        order: 1;
         height: 100%;
         display: grid;
         grid-template-rows: auto 1fr;
-        gap: 14px;
+        gap: 16px;
       }
 
       .toolbar {
@@ -269,14 +401,29 @@
       }
 
       .previewArea {
-        border-radius: 16px;
-        border: 1px solid var(--stroke);
-        background: rgba(255, 255, 255, 0.03);
+        position: relative;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(12, 13, 15, 0.9);
         overflow: auto;
-        padding: 14px;
+        padding: 20px;
+        box-shadow: none;
+      }
+
+      .previewArea::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 36px 36px;
+        opacity: 0.18;
       }
 
       .previews {
+        position: relative;
+        z-index: 1;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 14px;
@@ -286,14 +433,14 @@
         width: 100%;
         display: grid;
         place-items: center;
-        padding: 14px 0 4px;
+        padding: 28px 0 14px;
       }
 
       .nineBox {
         position: relative;
         border-radius: 0;
         overflow: visible;
-        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+        box-shadow: 3px 5px 30px rgba(0, 0, 0, 0.22);
       }
 
       body.clip-nine-box .nineBox {
@@ -322,11 +469,11 @@
         align-items: center;
         justify-content: center;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.9);
-        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+        color: rgba(255, 255, 255, 0.96);
+        text-shadow: none;
         pointer-events: none;
         text-align: center;
-        line-height: 1.35;
+        line-height: 1.43;
         word-break: break-word;
         white-space: pre-wrap;
       }
@@ -339,8 +486,8 @@
 
       .guide .contentRect {
         position: absolute;
-        border: 1px dashed rgba(124, 242, 208, 0.9);
-        background: rgba(124, 242, 208, 0.08);
+        border: 1px dashed rgba(255, 61, 139, 0.92);
+        background: rgba(255, 61, 139, 0.08);
         border-radius: 10px;
       }
 
@@ -353,9 +500,9 @@
 
       .kv {
         margin-top: 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.03);
         overflow: hidden;
       }
 
@@ -366,19 +513,19 @@
 
       .kv .k,
       .kv .v {
-        padding: 10px 12px;
+        padding: 12px 14px;
         font-size: 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid var(--stroke);
       }
 
       .kv .k {
         color: var(--muted);
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.04);
       }
 
       .kv .v {
         font-family: var(--mono);
-        color: rgba(255, 255, 255, 0.82);
+        color: #ffffff;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -391,39 +538,39 @@
 
       .editor {
         margin-top: 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
         background: rgba(255, 255, 255, 0.04);
         overflow: hidden;
       }
 
       .editor .hd {
-        padding: 10px 12px;
+        padding: 14px 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       .editor .hd .name {
-        font-size: 12px;
+        font-size: 14px;
         color: var(--muted);
-        letter-spacing: 0.2px;
+        letter-spacing: -0.01em;
       }
 
       .editor .bd {
-        padding: 12px;
+        padding: 16px;
         display: grid;
-        gap: 10px;
+        gap: 14px;
       }
 
       .editor canvas {
         width: 100%;
         height: auto;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: #ffffff;
         cursor: crosshair;
         touch-action: none;
       }
@@ -441,7 +588,7 @@
 
       .miniLabel {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--muted);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -450,7 +597,7 @@
 
       .miniLabel .meta {
         font-family: var(--mono);
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--faint);
       }
 
       .miniInputs {
@@ -473,6 +620,40 @@
       input[type="range"] {
         width: 100%;
         cursor: pointer;
+        appearance: none;
+        background: transparent;
+      }
+
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.26);
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        margin-top: -6px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 61, 139, 0.42);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(255, 61, 139, 0.12);
+      }
+
+      input[type="range"]::-moz-range-track {
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.26);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 61, 139, 0.42);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(255, 61, 139, 0.12);
       }
 
       .editorActions {
@@ -481,40 +662,135 @@
         gap: 10px;
       }
 
+      .section {
+        margin-top: 14px;
+        padding: 16px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.035);
+        box-shadow: none;
+      }
+
+      .sectionHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .sectionTitle {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        color: var(--text);
+        text-transform: uppercase;
+      }
+
+      .sectionDesc {
+        font-size: 10px;
+        color: var(--faint);
+        font-family: var(--mono);
+        text-transform: uppercase;
+      }
+
+      .toolbarBadge {
+        padding: 0;
+        border-radius: 999px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-family: var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .emptyState {
+        min-height: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 64px 18px;
+      }
+
+      .emptyState.show {
+        display: flex;
+      }
+
+      .emptyCard {
+        width: min(440px, 100%);
+        padding: 28px 32px;
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: transparent;
+        box-shadow: none;
+        text-align: center;
+      }
+
+      .emptyCard .eyebrow {
+        display: inline-flex;
+        margin-bottom: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.84);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .emptyCard .heading {
+        font-family: var(--display);
+        font-size: 46px;
+        margin: 0 0 12px;
+        letter-spacing: 0;
+        font-weight: 600;
+        line-height: 1.1;
+        color: #ffffff;
+      }
+
+      .emptyCard .copy {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 17px;
+        line-height: 1.47;
+      }
+
       .warn {
         margin-top: 10px;
-        padding: 10px 12px;
+        padding: 12px 14px;
         border-radius: 14px;
-        border: 1px solid rgba(251, 113, 133, 0.35);
-        background: rgba(251, 113, 133, 0.08);
-        color: rgba(255, 255, 255, 0.86);
-        font-size: 12px;
-        line-height: 1.35;
+        border: 1px solid rgba(251, 113, 133, 0.2);
+        background: rgba(251, 113, 133, 0.06);
+        color: #ffd6e4;
+        font-size: 14px;
+        line-height: 1.43;
         display: none;
       }
 
       .hintSmall {
-        margin-top: 10px;
+        margin-top: 16px;
         color: var(--muted);
         font-size: 12px;
-        line-height: 1.35;
+        line-height: 1.5;
       }
 
       .bg-light .previewArea {
-        background: rgba(255, 255, 255, 0.07);
+        background: #f3f3f1;
       }
 
       .bg-dark .previewArea {
-        background: rgba(0, 0, 0, 0.22);
+        background: #111214;
       }
 
       .bg-checker .previewArea {
-        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
-          linear-gradient(-45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
-          linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%),
-          linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%);
-        background-size: 18px 18px;
-        background-position: 0 0, 0 9px, 9px -9px, -9px 0px;
+        background-color: #121315;
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.045) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.045) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.045) 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0;
       }
 
       @media (max-width: 980px) {
@@ -527,119 +803,156 @@
           height: auto;
           min-height: 100%;
         }
+        .panel {
+          order: 1;
+        }
+        .grid {
+          order: 2;
+        }
         .panel .bd {
           height: auto;
           max-height: 60vh;
         }
       }
+
     </style>
   </head>
   <body>
     <div class="app">
       <div class="panel">
         <div class="hd">
-          <div class="title">9-Patch 点九图测试工具</div>
-          <div id="fileLabel" class="subtitle">未选择图片</div>
+          <div class="heroMeta">
+            <div class="title">9-Patch 点九图测试工具</div>
+            <div class="subtitle">导入 .9.png，实时验证 stretch、内容区与导出结果</div>
+          </div>
+          <div>
+            <div id="statusPill" class="statusPill">未导入</div>
+            <div id="fileLabel" class="subtitle" style="margin-top: 8px; text-align: right">未选择图片</div>
+          </div>
         </div>
         <div class="bd">
-          <div id="dropZone" class="drop">
-            <div class="row" style="grid-template-columns: 1fr 1fr; margin: 0">
-              <button id="pickBtn" class="btn primary" type="button">选择或拖入 .9.png</button>
-              <button id="sampleBtn" class="btn" type="button">使用内置示例</button>
+          <div class="section" style="margin-top: 0">
+            <div class="sectionHeader">
+              <div class="sectionTitle">导入素材</div>
+              <div class="sectionDesc">UPLOAD</div>
             </div>
-            <div class="hint">
-              支持 Android 9-Patch：顶/左为 stretch，底/右为内容区。解析与渲染全在本地浏览器完成。
-            </div>
-            <input id="fileInput" type="file" accept="image/png" style="display: none" />
-          </div>
-
-          <div class="row" style="margin-top: 12px">
-            <div class="field">
-              <div class="label">目标宽 <span class="meta">px</span></div>
-              <input id="wInput" type="number" min="1" value="240" />
-            </div>
-            <div class="field">
-              <div class="label">目标高 <span class="meta">px</span></div>
-              <input id="hInput" type="number" min="1" value="96" />
+            <div id="dropZone" class="drop">
+              <div class="row" style="grid-template-columns: 1fr 1fr; margin: 0">
+                <button id="pickBtn" class="btn primary" type="button">选择或拖入 .9.png</button>
+                <button id="sampleBtn" class="btn" type="button">使用内置示例</button>
+              </div>
+              <div class="hint">
+                所有解析与渲染都在本地浏览器完成。顶/左定义 stretch，底/右定义内容区。
+              </div>
+              <input id="fileInput" type="file" accept="image/png" style="display: none" />
             </div>
           </div>
 
-          <div class="row" style="margin-top: 10px">
-            <button id="addPreviewBtn" class="btn" type="button">添加到预览</button>
-            <button id="exportBtn" class="btn ghost" type="button">导出当前 PNG</button>
+          <div class="section">
+            <div class="sectionHeader">
+              <div class="sectionTitle">预览参数</div>
+              <div class="sectionDesc">PREVIEW</div>
+            </div>
+            <div class="row" style="margin-top: 0">
+              <div class="field">
+                <div class="label">目标宽 <span class="meta">px</span></div>
+                <input id="wInput" type="number" min="1" value="240" />
+              </div>
+              <div class="field">
+                <div class="label">目标高 <span class="meta">px</span></div>
+                <input id="hInput" type="number" min="1" value="96" />
+              </div>
+            </div>
+
+            <div class="row" style="margin-top: 10px">
+              <button id="addPreviewBtn" class="btn" type="button">添加到预览</button>
+              <button id="exportBtn" class="btn ghost" type="button">导出当前 PNG</button>
+            </div>
+
+            <div class="field" style="margin-top: 12px">
+              <div class="label">内容示例</div>
+              <textarea id="sampleTextInput" rows="2">内容示例</textarea>
+            </div>
+
+            <div class="field" style="margin-top: 12px">
+              <div class="label">背景</div>
+              <select id="bgSelect">
+                <option value="checker">棋盘格</option>
+                <option value="dark">深色</option>
+                <option value="light">浅色</option>
+              </select>
+            </div>
           </div>
 
-          <div class="field" style="margin-top: 12px">
-            <div class="label">内容示例</div>
-            <textarea id="sampleTextInput" rows="2">内容示例</textarea>
-          </div>
-
-          <div class="field" style="margin-top: 12px">
-            <div class="label">背景</div>
-            <select id="bgSelect">
-              <option value="checker">棋盘格</option>
-              <option value="dark">深色</option>
-              <option value="light">浅色</option>
-            </select>
-          </div>
-
-          <div class="switches">
-            <div class="switch">
-              <span>叠加显示内容区</span>
-              <input id="showContentToggle" type="checkbox" checked />
+          <div class="section">
+            <div class="sectionHeader">
+              <div class="sectionTitle">显示选项</div>
+              <div class="sectionDesc">DISPLAY</div>
             </div>
-            <div class="switch">
-              <span>叠加显示 stretch 分段</span>
-              <input id="showStretchToggle" type="checkbox" />
-            </div>
-            <div class="switch">
-              <span>显示“内容示例”</span>
-              <input id="showTextToggle" type="checkbox" checked />
-            </div>
-            <div class="switch">
-              <span>显示图片阴影</span>
-              <input id="nineShadowToggle" type="checkbox" checked />
-            </div>
-            <div class="switch">
-              <span>容器裁剪圆角</span>
-              <input id="clipBoxToggle" type="checkbox" />
-            </div>
-            <div class="switch">
-              <span>平滑缩放（imageSmoothing）</span>
-              <input id="smoothingToggle" type="checkbox" checked />
+            <div class="switches" style="margin-top: 0">
+              <div class="switch">
+                <span>叠加显示内容区</span>
+                <input id="showContentToggle" type="checkbox" checked />
+              </div>
+              <div class="switch">
+                <span>叠加显示 stretch 分段</span>
+                <input id="showStretchToggle" type="checkbox" />
+              </div>
+              <div class="switch">
+                <span>显示“内容示例”</span>
+                <input id="showTextToggle" type="checkbox" checked />
+              </div>
+              <div class="switch">
+                <span>显示图片阴影</span>
+                <input id="nineShadowToggle" type="checkbox" checked />
+              </div>
+              <div class="switch">
+                <span>容器裁剪圆角</span>
+                <input id="clipBoxToggle" type="checkbox" />
+              </div>
+              <div class="switch">
+                <span>平滑缩放（imageSmoothing）</span>
+                <input id="smoothingToggle" type="checkbox" checked />
+              </div>
             </div>
           </div>
 
           <div id="warn" class="warn"></div>
 
-          <div class="kv">
-            <div class="row">
-              <div class="k">原图尺寸</div>
-              <div id="rawSize" class="v">-</div>
+          <div class="section">
+            <div class="sectionHeader">
+              <div class="sectionTitle">解析结果</div>
+              <div class="sectionDesc">INSPECT</div>
             </div>
-            <div class="row">
-              <div class="k">去边尺寸</div>
-              <div id="trimSize" class="v">-</div>
-            </div>
-            <div class="row">
-              <div class="k">Stretch X</div>
-              <div id="stretchXInfo" class="v">-</div>
-            </div>
-            <div class="row">
-              <div class="k">Stretch Y</div>
-              <div id="stretchYInfo" class="v">-</div>
-            </div>
-            <div class="row">
-              <div class="k">Padding</div>
-              <div id="paddingInfo" class="v">-</div>
+            <div class="kv" style="margin-top: 0">
+              <div class="row">
+                <div class="k">原图尺寸</div>
+                <div id="rawSize" class="v">-</div>
+              </div>
+              <div class="row">
+                <div class="k">去边尺寸</div>
+                <div id="trimSize" class="v">-</div>
+              </div>
+              <div class="row">
+                <div class="k">Stretch X</div>
+                <div id="stretchXInfo" class="v">-</div>
+              </div>
+              <div class="row">
+                <div class="k">Stretch Y</div>
+                <div id="stretchYInfo" class="v">-</div>
+              </div>
+              <div class="row">
+                <div class="k">Padding</div>
+                <div id="paddingInfo" class="v">-</div>
+              </div>
             </div>
           </div>
 
           <div class="editor">
             <div class="hd">
               <div class="name">标注编辑（单段）</div>
-              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.5); font-family: var(--mono)">
-                绿=stretch / 紫=内容区
+              <div style="font-size: 11px; color: var(--faint); font-family: var(--mono)">
+                蓝=stretch / 浅蓝=内容区
               </div>
             </div>
             <div class="bd">
@@ -714,13 +1027,23 @@
         <div class="toolbar">
           <div class="left">
             <button id="resetBtn" class="btn ghost" type="button">清空预览</button>
+            <div id="previewBadge" class="toolbarBadge">等待导入图片</div>
           </div>
           <div class="right">
-            <div style="font-size: 12px; color: var(--muted)">右侧为不同尺寸的自动适配效果</div>
+            <div class="toolbarBadge">多尺寸适配预览</div>
           </div>
         </div>
 
         <div id="previewArea" class="previewArea bg-checker">
+          <div id="emptyState" class="emptyState show">
+            <div class="emptyCard">
+              <div class="eyebrow">9-Patch Preview</div>
+              <h2 class="heading">导入一张点九图，开始检查适配效果</h2>
+              <p class="copy">
+                上传 `.9.png` 后，即可查看不同尺寸下的渲染结果，并在右侧工作台中完成标注校准与导出。
+              </p>
+            </div>
+          </div>
           <div id="previews" class="previews"></div>
         </div>
       </div>
@@ -733,6 +1056,8 @@
       const sampleBtn = $("#sampleBtn")
       const dropZone = $("#dropZone")
       const fileLabel = $("#fileLabel")
+      const statusPill = $("#statusPill")
+      const previewBadge = $("#previewBadge")
 
       const wInput = $("#wInput")
       const hInput = $("#hInput")
@@ -781,6 +1106,7 @@
 
       const previewsEl = $("#previews")
       const previewArea = $("#previewArea")
+      const emptyStateEl = $("#emptyState")
 
       const state = {
         fileName: "",
@@ -819,6 +1145,14 @@
         }
         warnEl.style.display = "block"
         warnEl.textContent = msg
+      }
+
+      function syncHeaderState() {
+        const ready = Boolean(state.trimmedCanvas)
+        statusPill.textContent = ready ? "已解析" : "未导入"
+        statusPill.classList.toggle("ready", ready)
+        previewBadge.textContent = ready ? `当前素材：${state.fileName || "sample.9.png"}` : "等待导入图片"
+        emptyStateEl.classList.toggle("show", !state.cards.length)
       }
 
       function clampInt(v, min, max) {
@@ -1048,7 +1382,7 @@
         ctx.clearRect(0, 0, w, h)
 
         ctx.globalCompositeOperation = "source-over"
-        ctx.strokeStyle = "rgba(167, 139, 250, 0.85)"
+        ctx.strokeStyle = "rgba(255, 61, 139, 0.82)"
         ctx.lineWidth = 1
 
         for (let i = 1; i < dstX.length - 1; i++) {
@@ -1066,7 +1400,7 @@
           ctx.stroke()
         }
 
-        ctx.fillStyle = "rgba(167, 139, 250, 0.12)"
+        ctx.fillStyle = "rgba(255, 61, 139, 0.1)"
         for (let yi = 0; yi < dstSegY.length; yi++) {
           for (let xi = 0; xi < dstSegX.length; xi++) {
             const sx = dstSegX[xi]
@@ -1376,23 +1710,23 @@
           ctx.strokeRect(x - 2.5, y - 2.5, 6, 6)
         }
 
-        drawLine(v.sx0 + 1, 0, v.sx1, 0, "rgba(124, 242, 208, 1)")
-        drawLine(0, v.sy0 + 1, 0, v.sy1, "rgba(124, 242, 208, 1)")
+        drawLine(v.sx0 + 1, 0, v.sx1, 0, "rgba(255,255,255,1)")
+        drawLine(0, v.sy0 + 1, 0, v.sy1, "rgba(255,255,255,1)")
 
-        drawLine(v.cx0 + 1, rawH - 1, v.cx1, rawH - 1, "rgba(167, 139, 250, 1)")
-        drawLine(rawW - 1, v.cy0 + 1, rawW - 1, v.cy1, "rgba(167, 139, 250, 1)")
+        drawLine(v.cx0 + 1, rawH - 1, v.cx1, rawH - 1, "rgba(255, 61, 139, 1)")
+        drawLine(rawW - 1, v.cy0 + 1, rawW - 1, v.cy1, "rgba(255, 61, 139, 1)")
 
-        drawHandle(v.sx0 + 1, 0, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
-        drawHandle(v.sx1, 0, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
-        drawHandle(0, v.sy0 + 1, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
-        drawHandle(0, v.sy1, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(v.sx0 + 1, 0, "rgba(255,255,255,0.96)", "rgba(0,0,0,0.36)")
+        drawHandle(v.sx1, 0, "rgba(255,255,255,0.96)", "rgba(0,0,0,0.36)")
+        drawHandle(0, v.sy0 + 1, "rgba(255,255,255,0.96)", "rgba(0,0,0,0.36)")
+        drawHandle(0, v.sy1, "rgba(255,255,255,0.96)", "rgba(0,0,0,0.36)")
 
-        drawHandle(v.cx0 + 1, rawH - 1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
-        drawHandle(v.cx1, rawH - 1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
-        drawHandle(rawW - 1, v.cy0 + 1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
-        drawHandle(rawW - 1, v.cy1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(v.cx0 + 1, rawH - 1, "rgba(255, 61, 139, 0.94)", "rgba(0,0,0,0.36)")
+        drawHandle(v.cx1, rawH - 1, "rgba(255, 61, 139, 0.94)", "rgba(0,0,0,0.36)")
+        drawHandle(rawW - 1, v.cy0 + 1, "rgba(255, 61, 139, 0.94)", "rgba(0,0,0,0.36)")
+        drawHandle(rawW - 1, v.cy1, "rgba(255, 61, 139, 0.94)", "rgba(0,0,0,0.36)")
 
-        ctx.strokeStyle = "rgba(255,255,255,0.25)"
+        ctx.strokeStyle = "rgba(0,0,0,0.22)"
         ctx.strokeRect(0.5, 0.5, rawW - 1, rawH - 1)
 
         ctx.restore()
@@ -1534,6 +1868,7 @@
         setActionsEnabled(false)
         setEditorEnabled(false)
         renderEditorCanvas()
+        syncHeaderState()
       }
 
       function syncNineShadow() {
@@ -1551,6 +1886,7 @@
           const res = renderCard(card)
           if (card.id === "main") state.lastRender = res
         }
+        syncHeaderState()
       }
 
       function syncTextVisibility() {
@@ -1594,6 +1930,7 @@
         }
 
         syncTextVisibility()
+        syncHeaderState()
       }
 
       async function handleFile(file) {
@@ -1659,6 +1996,7 @@
         setActionsEnabled(true)
         setEditorEnabled(true)
         initEditorFromState()
+        syncHeaderState()
       }
 
       function createSampleRawCanvas() {
@@ -1733,6 +2071,7 @@
         setActionsEnabled(true)
         setEditorEnabled(true)
         initEditorFromState()
+        syncHeaderState()
       }
 
       function addPreviewFromInputs() {
@@ -1909,6 +2248,7 @@
       syncClipBox()
       syncSampleText()
       renderEditorCanvas()
+      syncHeaderState()
     </script>
   </body>
 </html>
