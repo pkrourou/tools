@@ -1,0 +1,1914 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>9-Patch 点九图测试工具</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel-2: rgba(255, 255, 255, 0.1);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.65);
+        --faint: rgba(255, 255, 255, 0.4);
+        --accent: #7cf2d0;
+        --accent-2: #a78bfa;
+        --danger: #fb7185;
+        --stroke: rgba(255, 255, 255, 0.14);
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+          monospace;
+        --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+          "Noto Sans CJK SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        color: var(--text);
+        font-family: var(--sans);
+        background: radial-gradient(1200px 700px at 20% 10%, rgba(124, 242, 208, 0.18), transparent 55%),
+          radial-gradient(1000px 600px at 70% 0%, rgba(167, 139, 250, 0.16), transparent 60%),
+          radial-gradient(900px 600px at 60% 90%, rgba(251, 113, 133, 0.08), transparent 55%), var(--bg);
+        overflow: hidden;
+      }
+
+      .app {
+        height: 100%;
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 14px;
+        padding: 14px;
+      }
+
+      .panel {
+        border: 1px solid var(--stroke);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .panel .hd {
+        padding: 14px 14px 12px;
+        border-bottom: 1px solid var(--stroke);
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .title {
+        font-size: 14px;
+        letter-spacing: 0.5px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        color: var(--muted);
+        font-family: var(--mono);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 190px;
+      }
+
+      .panel .bd {
+        padding: 14px;
+        overflow: auto;
+        height: calc(100% - 52px);
+      }
+
+      .drop {
+        border-radius: 14px;
+        border: 1px dashed rgba(255, 255, 255, 0.24);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+        transition: 140ms ease;
+      }
+
+      .drop.drag {
+        border-color: rgba(124, 242, 208, 0.6);
+        background: rgba(124, 242, 208, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .drop .hint {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
+      .btn {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        transition: 140ms ease;
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .btn.primary {
+        border-color: rgba(124, 242, 208, 0.35);
+        background: linear-gradient(180deg, rgba(124, 242, 208, 0.22), rgba(124, 242, 208, 0.12));
+      }
+
+      .btn.ghost {
+        background: transparent;
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .label {
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .label .meta {
+        font-family: var(--mono);
+        color: var(--faint);
+        font-size: 11px;
+      }
+
+      input[type="number"],
+      select,
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 10px 11px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.18);
+        color: var(--text);
+        outline: none;
+        font-family: var(--mono);
+      }
+
+      input[type="number"]:focus,
+      select:focus,
+      input[type="text"]:focus,
+      textarea:focus {
+        border-color: rgba(124, 242, 208, 0.5);
+        box-shadow: 0 0 0 4px rgba(124, 242, 208, 0.1);
+      }
+
+      .switches {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .switch span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .switch input {
+        width: 18px;
+        height: 18px;
+      }
+
+      .card {
+        border: 1px solid var(--stroke);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .card .hd {
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid var(--stroke);
+      }
+
+      .card .hd .name {
+        font-size: 13px;
+        letter-spacing: 0.2px;
+      }
+
+      .card .hd .size {
+        font-size: 11px;
+        font-family: var(--mono);
+        color: var(--muted);
+      }
+
+      .card .bd {
+        padding: 14px;
+      }
+
+      .grid {
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 14px;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .toolbar .left {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .toolbar .right {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .previewArea {
+        border-radius: 16px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.03);
+        overflow: auto;
+        padding: 14px;
+      }
+
+      .previews {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 14px;
+      }
+
+      .stage {
+        width: 100%;
+        display: grid;
+        place-items: center;
+        padding: 14px 0 4px;
+      }
+
+      .nineBox {
+        position: relative;
+        border-radius: 0;
+        overflow: visible;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+      }
+
+      body.clip-nine-box .nineBox {
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      body.no-nine-shadow .nineBox {
+        box-shadow: none;
+      }
+
+      .nineImg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        image-rendering: auto;
+        pointer-events: none;
+      }
+
+      .nineText {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+        pointer-events: none;
+        text-align: center;
+        line-height: 1.35;
+        word-break: break-word;
+        white-space: pre-wrap;
+      }
+
+      .guide {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .guide .contentRect {
+        position: absolute;
+        border: 1px dashed rgba(124, 242, 208, 0.9);
+        background: rgba(124, 242, 208, 0.08);
+        border-radius: 10px;
+      }
+
+      .guide canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .kv {
+        margin-top: 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+      }
+
+      .kv .row {
+        grid-template-columns: 120px 1fr;
+        gap: 0;
+      }
+
+      .kv .k,
+      .kv .v {
+        padding: 10px 12px;
+        font-size: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .kv .k {
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .kv .v {
+        font-family: var(--mono);
+        color: rgba(255, 255, 255, 0.82);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .kv .row:last-child .k,
+      .kv .row:last-child .v {
+        border-bottom: 0;
+      }
+
+      .editor {
+        margin-top: 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+      }
+
+      .editor .hd {
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .editor .hd .name {
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 0.2px;
+      }
+
+      .editor .bd {
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .editor canvas {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.12);
+        cursor: crosshair;
+        touch-action: none;
+      }
+
+      .miniRow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .miniField {
+        display: grid;
+        gap: 6px;
+      }
+
+      .miniLabel {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .miniLabel .meta {
+        font-family: var(--mono);
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .miniInputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .miniInputs input[type="number"] {
+        padding: 8px 9px;
+        border-radius: 10px;
+      }
+
+      .miniRange {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+      }
+
+      .editorActions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .warn {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(251, 113, 133, 0.35);
+        background: rgba(251, 113, 133, 0.08);
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 12px;
+        line-height: 1.35;
+        display: none;
+      }
+
+      .hintSmall {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .bg-light .previewArea {
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .bg-dark .previewArea {
+        background: rgba(0, 0, 0, 0.22);
+      }
+
+      .bg-checker .previewArea {
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%);
+        background-size: 18px 18px;
+        background-position: 0 0, 0 9px, 9px -9px, -9px 0px;
+      }
+
+      @media (max-width: 980px) {
+        html,
+        body {
+          overflow: auto;
+        }
+        .app {
+          grid-template-columns: 1fr;
+          height: auto;
+          min-height: 100%;
+        }
+        .panel .bd {
+          height: auto;
+          max-height: 60vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="panel">
+        <div class="hd">
+          <div class="title">9-Patch 点九图测试工具</div>
+          <div id="fileLabel" class="subtitle">未选择图片</div>
+        </div>
+        <div class="bd">
+          <div id="dropZone" class="drop">
+            <div class="row" style="grid-template-columns: 1fr 1fr; margin: 0">
+              <button id="pickBtn" class="btn primary" type="button">选择或拖入 .9.png</button>
+              <button id="sampleBtn" class="btn" type="button">使用内置示例</button>
+            </div>
+            <div class="hint">
+              支持 Android 9-Patch：顶/左为 stretch，底/右为内容区。解析与渲染全在本地浏览器完成。
+            </div>
+            <input id="fileInput" type="file" accept="image/png" style="display: none" />
+          </div>
+
+          <div class="row" style="margin-top: 12px">
+            <div class="field">
+              <div class="label">目标宽 <span class="meta">px</span></div>
+              <input id="wInput" type="number" min="1" value="240" />
+            </div>
+            <div class="field">
+              <div class="label">目标高 <span class="meta">px</span></div>
+              <input id="hInput" type="number" min="1" value="96" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 10px">
+            <button id="addPreviewBtn" class="btn" type="button">添加到预览</button>
+            <button id="exportBtn" class="btn ghost" type="button">导出当前 PNG</button>
+          </div>
+
+          <div class="field" style="margin-top: 12px">
+            <div class="label">内容示例</div>
+            <textarea id="sampleTextInput" rows="2">内容示例</textarea>
+          </div>
+
+          <div class="field" style="margin-top: 12px">
+            <div class="label">背景</div>
+            <select id="bgSelect">
+              <option value="checker">棋盘格</option>
+              <option value="dark">深色</option>
+              <option value="light">浅色</option>
+            </select>
+          </div>
+
+          <div class="switches">
+            <div class="switch">
+              <span>叠加显示内容区</span>
+              <input id="showContentToggle" type="checkbox" checked />
+            </div>
+            <div class="switch">
+              <span>叠加显示 stretch 分段</span>
+              <input id="showStretchToggle" type="checkbox" />
+            </div>
+            <div class="switch">
+              <span>显示“内容示例”</span>
+              <input id="showTextToggle" type="checkbox" checked />
+            </div>
+            <div class="switch">
+              <span>显示图片阴影</span>
+              <input id="nineShadowToggle" type="checkbox" checked />
+            </div>
+            <div class="switch">
+              <span>容器裁剪圆角</span>
+              <input id="clipBoxToggle" type="checkbox" />
+            </div>
+            <div class="switch">
+              <span>平滑缩放（imageSmoothing）</span>
+              <input id="smoothingToggle" type="checkbox" checked />
+            </div>
+          </div>
+
+          <div id="warn" class="warn"></div>
+
+          <div class="kv">
+            <div class="row">
+              <div class="k">原图尺寸</div>
+              <div id="rawSize" class="v">-</div>
+            </div>
+            <div class="row">
+              <div class="k">去边尺寸</div>
+              <div id="trimSize" class="v">-</div>
+            </div>
+            <div class="row">
+              <div class="k">Stretch X</div>
+              <div id="stretchXInfo" class="v">-</div>
+            </div>
+            <div class="row">
+              <div class="k">Stretch Y</div>
+              <div id="stretchYInfo" class="v">-</div>
+            </div>
+            <div class="row">
+              <div class="k">Padding</div>
+              <div id="paddingInfo" class="v">-</div>
+            </div>
+          </div>
+
+          <div class="editor">
+            <div class="hd">
+              <div class="name">标注编辑（单段）</div>
+              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.5); font-family: var(--mono)">
+                绿=stretch / 紫=内容区
+              </div>
+            </div>
+            <div class="bd">
+              <canvas id="editorCanvas" width="10" height="10"></canvas>
+
+              <fieldset id="editorFieldset" style="border: 0; padding: 0; margin: 0" disabled>
+                <div class="editorActions">
+                  <button id="resetMarksBtn" class="btn ghost" type="button">重置为解析值</button>
+                  <button id="export9Btn" class="btn" type="button">导出 .9.png</button>
+                </div>
+
+                <div class="miniRow">
+                  <div class="miniField">
+                    <div class="miniLabel">Stretch X（顶边）<span class="meta">[s,e)</span></div>
+                    <div class="miniInputs">
+                      <input id="sxStart" type="number" min="0" value="0" />
+                      <input id="sxEnd" type="number" min="1" value="1" />
+                    </div>
+                    <div class="miniRange">
+                      <input id="sxStartR" type="range" min="0" max="1" value="0" />
+                      <input id="sxEndR" type="range" min="1" max="1" value="1" />
+                    </div>
+                  </div>
+                  <div class="miniField">
+                    <div class="miniLabel">Stretch Y（左边）<span class="meta">[s,e)</span></div>
+                    <div class="miniInputs">
+                      <input id="syStart" type="number" min="0" value="0" />
+                      <input id="syEnd" type="number" min="1" value="1" />
+                    </div>
+                    <div class="miniRange">
+                      <input id="syStartR" type="range" min="0" max="1" value="0" />
+                      <input id="syEndR" type="range" min="1" max="1" value="1" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="miniRow">
+                  <div class="miniField">
+                    <div class="miniLabel">内容区 X（底边）<span class="meta">[s,e)</span></div>
+                    <div class="miniInputs">
+                      <input id="cxStart" type="number" min="0" value="0" />
+                      <input id="cxEnd" type="number" min="1" value="1" />
+                    </div>
+                    <div class="miniRange">
+                      <input id="cxStartR" type="range" min="0" max="1" value="0" />
+                      <input id="cxEndR" type="range" min="1" max="1" value="1" />
+                    </div>
+                  </div>
+                  <div class="miniField">
+                    <div class="miniLabel">内容区 Y（右边）<span class="meta">[s,e)</span></div>
+                    <div class="miniInputs">
+                      <input id="cyStart" type="number" min="0" value="0" />
+                      <input id="cyEnd" type="number" min="1" value="1" />
+                    </div>
+                    <div class="miniRange">
+                      <input id="cyStartR" type="range" min="0" max="1" value="0" />
+                      <input id="cyEndR" type="range" min="1" max="1" value="1" />
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <div class="hintSmall">
+            小技巧：如果图片没有任何黑线，会按“整图可拉伸”兜底；如果固定边总和大于目标尺寸，会整体缩放以保证可视。
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="toolbar">
+          <div class="left">
+            <button id="resetBtn" class="btn ghost" type="button">清空预览</button>
+          </div>
+          <div class="right">
+            <div style="font-size: 12px; color: var(--muted)">右侧为不同尺寸的自动适配效果</div>
+          </div>
+        </div>
+
+        <div id="previewArea" class="previewArea bg-checker">
+          <div id="previews" class="previews"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (sel) => document.querySelector(sel)
+      const fileInput = $("#fileInput")
+      const pickBtn = $("#pickBtn")
+      const sampleBtn = $("#sampleBtn")
+      const dropZone = $("#dropZone")
+      const fileLabel = $("#fileLabel")
+
+      const wInput = $("#wInput")
+      const hInput = $("#hInput")
+      const addPreviewBtn = $("#addPreviewBtn")
+      const exportBtn = $("#exportBtn")
+      const resetBtn = $("#resetBtn")
+
+      const sampleTextInput = $("#sampleTextInput")
+      const bgSelect = $("#bgSelect")
+      const showContentToggle = $("#showContentToggle")
+      const showStretchToggle = $("#showStretchToggle")
+      const showTextToggle = $("#showTextToggle")
+      const nineShadowToggle = $("#nineShadowToggle")
+      const clipBoxToggle = $("#clipBoxToggle")
+      const smoothingToggle = $("#smoothingToggle")
+
+      const warnEl = $("#warn")
+      const rawSizeEl = $("#rawSize")
+      const trimSizeEl = $("#trimSize")
+      const stretchXInfoEl = $("#stretchXInfo")
+      const stretchYInfoEl = $("#stretchYInfo")
+      const paddingInfoEl = $("#paddingInfo")
+
+      const editorCanvas = $("#editorCanvas")
+      const editorFieldset = $("#editorFieldset")
+      const resetMarksBtn = $("#resetMarksBtn")
+      const export9Btn = $("#export9Btn")
+
+      const sxStartEl = $("#sxStart")
+      const sxEndEl = $("#sxEnd")
+      const syStartEl = $("#syStart")
+      const syEndEl = $("#syEnd")
+      const cxStartEl = $("#cxStart")
+      const cxEndEl = $("#cxEnd")
+      const cyStartEl = $("#cyStart")
+      const cyEndEl = $("#cyEnd")
+
+      const sxStartREl = $("#sxStartR")
+      const sxEndREl = $("#sxEndR")
+      const syStartREl = $("#syStartR")
+      const syEndREl = $("#syEndR")
+      const cxStartREl = $("#cxStartR")
+      const cxEndREl = $("#cxEndR")
+      const cyStartREl = $("#cyStartR")
+      const cyEndREl = $("#cyEndR")
+
+      const previewsEl = $("#previews")
+      const previewArea = $("#previewArea")
+
+      const state = {
+        fileName: "",
+        rawW: 0,
+        rawH: 0,
+        rawCanvas: null,
+        trimmedW: 0,
+        trimmedH: 0,
+        trimmedCanvas: null,
+        stretchX: [],
+        stretchY: [],
+        padding: { left: 0, top: 0, right: 0, bottom: 0 },
+        segmentsX: [],
+        segmentsY: [],
+        cards: [],
+        lastRender: null,
+        sampleText: "内容示例",
+        original: null,
+      }
+
+      function setActionsEnabled(enabled) {
+        addPreviewBtn.disabled = !enabled
+        exportBtn.disabled = !enabled
+      }
+
+      function setEditorEnabled(enabled) {
+        editorFieldset.disabled = !enabled
+        export9Btn.disabled = !enabled
+      }
+
+      function setWarn(msg) {
+        if (!msg) {
+          warnEl.style.display = "none"
+          warnEl.textContent = ""
+          return
+        }
+        warnEl.style.display = "block"
+        warnEl.textContent = msg
+      }
+
+      function clampInt(v, min, max) {
+        const n = Number.isFinite(v) ? Math.floor(v) : min
+        return Math.min(max, Math.max(min, n))
+      }
+
+      function isMarkPixel(r, g, b, a) {
+        return a > 0 && r < 16 && g < 16 && b < 16
+      }
+
+      function scanRuns1D(getIsBlack, from, to) {
+        const runs = []
+        let inRun = false
+        let start = 0
+        for (let i = from; i <= to; i++) {
+          const on = getIsBlack(i)
+          if (on && !inRun) {
+            inRun = true
+            start = i
+          } else if (!on && inRun) {
+            inRun = false
+            runs.push([start, i - 1])
+          }
+        }
+        if (inRun) runs.push([start, to])
+        return runs
+      }
+
+      function parseNinePatch(rawCanvas) {
+        const w = rawCanvas.width
+        const h = rawCanvas.height
+        const ctx = rawCanvas.getContext("2d")
+        const img = ctx.getImageData(0, 0, w, h).data
+
+        const px = (x, y) => {
+          const i = (y * w + x) * 4
+          return [img[i], img[i + 1], img[i + 2], img[i + 3]]
+        }
+
+        const topRuns = scanRuns1D(
+          (x) => {
+            const [r, g, b, a] = px(x, 0)
+            return isMarkPixel(r, g, b, a)
+          },
+          1,
+          w - 2
+        )
+
+        const leftRuns = scanRuns1D(
+          (y) => {
+            const [r, g, b, a] = px(0, y)
+            return isMarkPixel(r, g, b, a)
+          },
+          1,
+          h - 2
+        )
+
+        const bottomRuns = scanRuns1D(
+          (x) => {
+            const [r, g, b, a] = px(x, h - 1)
+            return isMarkPixel(r, g, b, a)
+          },
+          1,
+          w - 2
+        )
+
+        const rightRuns = scanRuns1D(
+          (y) => {
+            const [r, g, b, a] = px(w - 1, y)
+            return isMarkPixel(r, g, b, a)
+          },
+          1,
+          h - 2
+        )
+
+        const trimmedW = Math.max(1, w - 2)
+        const trimmedH = Math.max(1, h - 2)
+
+        const stretchX = topRuns.length
+          ? topRuns.map(([a, b]) => [a - 1, b])
+          : [[0, trimmedW]]
+        const stretchY = leftRuns.length
+          ? leftRuns.map(([a, b]) => [a - 1, b])
+          : [[0, trimmedH]]
+
+        const padding = { left: 0, top: 0, right: 0, bottom: 0 }
+        if (bottomRuns.length) {
+          const a = bottomRuns[0][0]
+          const b = bottomRuns[bottomRuns.length - 1][1]
+          const contentStart = clampInt(a - 1, 0, trimmedW)
+          const contentEndExclusive = clampInt(b, 0, trimmedW)
+          padding.left = contentStart
+          padding.right = Math.max(0, trimmedW - contentEndExclusive)
+        }
+        if (rightRuns.length) {
+          const a = rightRuns[0][0]
+          const b = rightRuns[rightRuns.length - 1][1]
+          const contentStart = clampInt(a - 1, 0, trimmedH)
+          const contentEndExclusive = clampInt(b, 0, trimmedH)
+          padding.top = contentStart
+          padding.bottom = Math.max(0, trimmedH - contentEndExclusive)
+        }
+
+        const trimmedCanvas = document.createElement("canvas")
+        trimmedCanvas.width = trimmedW
+        trimmedCanvas.height = trimmedH
+        trimmedCanvas
+          .getContext("2d")
+          .drawImage(rawCanvas, 1, 1, trimmedW, trimmedH, 0, 0, trimmedW, trimmedH)
+
+        return { trimmedCanvas, trimmedW, trimmedH, stretchX, stretchY, padding }
+      }
+
+      function buildSegments(total, intervals) {
+        const boundaries = new Set([0, total])
+        for (const [s, e] of intervals) {
+          boundaries.add(clampInt(s, 0, total))
+          boundaries.add(clampInt(e, 0, total))
+        }
+        const sorted = Array.from(boundaries).sort((a, b) => a - b)
+        const segs = []
+        for (let i = 0; i < sorted.length - 1; i++) {
+          const start = sorted[i]
+          const end = sorted[i + 1]
+          const size = Math.max(0, end - start)
+          if (size <= 0) continue
+          const stretchable = intervals.some(([s, e]) => !(end <= s || start >= e))
+          segs.push({ start, end, size, stretchable })
+        }
+        return segs
+      }
+
+      function distributeSizes(totalTarget, segments) {
+        const fixed = segments.filter((s) => !s.stretchable)
+        const stretch = segments.filter((s) => s.stretchable)
+        const fixedSum = fixed.reduce((acc, s) => acc + s.size, 0)
+        const stretchSum = stretch.reduce((acc, s) => acc + s.size, 0)
+
+        if (stretchSum <= 0) {
+          const scale = totalTarget / Math.max(1, fixedSum)
+          return segments.map((s) => ({
+            ...s,
+            dest: s.size * scale,
+          }))
+        }
+
+        if (totalTarget < fixedSum) {
+          const scale = totalTarget / Math.max(1, fixedSum + stretchSum)
+          return segments.map((s) => ({
+            ...s,
+            dest: s.size * scale,
+          }))
+        }
+
+        const remaining = totalTarget - fixedSum
+        const scale = remaining / Math.max(1, stretchSum)
+        return segments.map((s) => ({
+          ...s,
+          dest: s.stretchable ? s.size * scale : s.size,
+        }))
+      }
+
+      function accumulateOffsets(destSegs) {
+        const offsets = [0]
+        let acc = 0
+        for (const s of destSegs) {
+          acc += s.dest
+          offsets.push(acc)
+        }
+        return offsets
+      }
+
+      function mapCoord(coord, srcSegs, dstSegs, dstOffsets) {
+        const total = srcSegs[srcSegs.length - 1].end
+        const c = Math.max(0, Math.min(coord, total))
+        if (c === total) return dstOffsets[dstOffsets.length - 1]
+        for (let i = 0; i < srcSegs.length; i++) {
+          const s = srcSegs[i]
+          if (c >= s.start && c < s.end) {
+            const span = Math.max(1e-6, s.end - s.start)
+            const t = (c - s.start) / span
+            return dstOffsets[i] + t * dstSegs[i].dest
+          }
+        }
+        return 0
+      }
+
+      function renderNinePatch(options) {
+        const { sourceCanvas, srcSegX, srcSegY, outW, outH, smoothing } = options
+
+        const dstSegX = distributeSizes(outW, srcSegX)
+        const dstSegY = distributeSizes(outH, srcSegY)
+
+        const dstX = accumulateOffsets(dstSegX)
+        const dstY = accumulateOffsets(dstSegY)
+
+        const outCanvas = document.createElement("canvas")
+        outCanvas.width = Math.max(1, Math.round(outW))
+        outCanvas.height = Math.max(1, Math.round(outH))
+        const ctx = outCanvas.getContext("2d")
+        ctx.clearRect(0, 0, outCanvas.width, outCanvas.height)
+        ctx.imageSmoothingEnabled = Boolean(smoothing)
+
+        for (let yi = 0; yi < srcSegY.length; yi++) {
+          for (let xi = 0; xi < srcSegX.length; xi++) {
+            const sx = srcSegX[xi].start
+            const sy = srcSegY[yi].start
+            const sw = srcSegX[xi].size
+            const sh = srcSegY[yi].size
+            const dx = dstX[xi]
+            const dy = dstY[yi]
+            const dw = dstSegX[xi].dest
+            const dh = dstSegY[yi].dest
+            if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) continue
+            ctx.drawImage(sourceCanvas, sx, sy, sw, sh, dx, dy, dw, dh)
+          }
+        }
+
+        return { outCanvas, dstSegX, dstSegY, dstX, dstY }
+      }
+
+      function drawStretchGuide(canvas, dstSegX, dstSegY, dstX, dstY) {
+        const ctx = canvas.getContext("2d")
+        const w = canvas.width
+        const h = canvas.height
+        ctx.clearRect(0, 0, w, h)
+
+        ctx.globalCompositeOperation = "source-over"
+        ctx.strokeStyle = "rgba(167, 139, 250, 0.85)"
+        ctx.lineWidth = 1
+
+        for (let i = 1; i < dstX.length - 1; i++) {
+          const x = Math.round(dstX[i]) + 0.5
+          ctx.beginPath()
+          ctx.moveTo(x, 0)
+          ctx.lineTo(x, h)
+          ctx.stroke()
+        }
+        for (let i = 1; i < dstY.length - 1; i++) {
+          const y = Math.round(dstY[i]) + 0.5
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(w, y)
+          ctx.stroke()
+        }
+
+        ctx.fillStyle = "rgba(167, 139, 250, 0.12)"
+        for (let yi = 0; yi < dstSegY.length; yi++) {
+          for (let xi = 0; xi < dstSegX.length; xi++) {
+            const sx = dstSegX[xi]
+            const sy = dstSegY[yi]
+            const stretch = sx.stretchable || sy.stretchable
+            if (!stretch) continue
+            const x = dstX[xi]
+            const y = dstY[yi]
+            ctx.fillRect(x, y, sx.dest, sy.dest)
+          }
+        }
+      }
+
+      function ensureCard(id, name, w, h) {
+        const card = document.createElement("div")
+        card.className = "card"
+        card.dataset.id = id
+
+        const hd = document.createElement("div")
+        hd.className = "hd"
+        const left = document.createElement("div")
+        left.className = "name"
+        left.textContent = name
+        const right = document.createElement("div")
+        right.className = "size"
+        right.textContent = `${w}×${h}`
+        hd.append(left, right)
+
+        const bd = document.createElement("div")
+        bd.className = "bd"
+        const stage = document.createElement("div")
+        stage.className = "stage"
+
+        const box = document.createElement("div")
+        box.className = "nineBox"
+        box.style.width = `${w}px`
+        box.style.height = `${h}px`
+
+        const img = document.createElement("img")
+        img.className = "nineImg"
+        img.alt = ""
+
+        const text = document.createElement("div")
+        text.className = "nineText"
+        text.textContent = state.sampleText
+
+        const guide = document.createElement("div")
+        guide.className = "guide"
+
+        const contentRect = document.createElement("div")
+        contentRect.className = "contentRect"
+        guide.appendChild(contentRect)
+
+        const guideCanvas = document.createElement("canvas")
+        guide.appendChild(guideCanvas)
+
+        box.append(img, text, guide)
+        stage.appendChild(box)
+        bd.appendChild(stage)
+
+        card.append(hd, bd)
+        previewsEl.appendChild(card)
+
+        return {
+          id,
+          name,
+          w,
+          h,
+          el: card,
+          sizeEl: right,
+          boxEl: box,
+          imgEl: img,
+          textEl: text,
+          guideEl: guide,
+          contentRectEl: contentRect,
+          guideCanvasEl: guideCanvas,
+        }
+      }
+
+      function updateCardSize(card, w, h) {
+        card.w = w
+        card.h = h
+        card.sizeEl.textContent = `${w}×${h}`
+        card.boxEl.style.width = `${w}px`
+        card.boxEl.style.height = `${h}px`
+      }
+
+      function renderCard(card) {
+        if (!state.trimmedCanvas) return
+        const w = clampInt(card.w, 1, 9999)
+        const h = clampInt(card.h, 1, 9999)
+
+        const result = renderNinePatch({
+          sourceCanvas: state.trimmedCanvas,
+          srcSegX: state.segmentsX,
+          srcSegY: state.segmentsY,
+          outW: w,
+          outH: h,
+          smoothing: smoothingToggle.checked,
+        })
+
+        const url = result.outCanvas.toDataURL("image/png")
+        card.imgEl.src = url
+
+        card.guideCanvasEl.width = Math.max(1, Math.round(w))
+        card.guideCanvasEl.height = Math.max(1, Math.round(h))
+
+        const leftSrc = state.padding.left
+        const topSrc = state.padding.top
+        const rightEdgeSrc = state.trimmedW - state.padding.right
+        const bottomEdgeSrc = state.trimmedH - state.padding.bottom
+
+        const left = mapCoord(leftSrc, state.segmentsX, result.dstSegX, result.dstX)
+        const top = mapCoord(topSrc, state.segmentsY, result.dstSegY, result.dstY)
+        const rightEdge = mapCoord(rightEdgeSrc, state.segmentsX, result.dstSegX, result.dstX)
+        const bottomEdge = mapCoord(bottomEdgeSrc, state.segmentsY, result.dstSegY, result.dstY)
+
+        const insetL = Math.max(0, Math.round(left))
+        const insetT = Math.max(0, Math.round(top))
+        const insetR = Math.max(0, Math.round(w - rightEdge))
+        const insetB = Math.max(0, Math.round(h - bottomEdge))
+
+        card.textEl.style.padding = `${insetT}px ${insetR}px ${insetB}px ${insetL}px`
+        card.textEl.style.display = showTextToggle.checked ? "" : "none"
+
+        card.contentRectEl.style.left = `${insetL}px`
+        card.contentRectEl.style.top = `${insetT}px`
+        card.contentRectEl.style.right = `${insetR}px`
+        card.contentRectEl.style.bottom = `${insetB}px`
+
+        card.contentRectEl.style.display = showContentToggle.checked ? "block" : "none"
+        card.guideCanvasEl.style.display = showStretchToggle.checked ? "block" : "none"
+
+        if (showStretchToggle.checked) {
+          drawStretchGuide(card.guideCanvasEl, result.dstSegX, result.dstSegY, result.dstX, result.dstY)
+        }
+
+        return result
+      }
+
+      function updateInfo() {
+        rawSizeEl.textContent = state.rawW && state.rawH ? `${state.rawW}×${state.rawH}` : "-"
+        trimSizeEl.textContent =
+          state.trimmedW && state.trimmedH ? `${state.trimmedW}×${state.trimmedH}` : "-"
+
+        const fmtIntervals = (arr) =>
+          arr
+            .map(([s, e]) => `[${s},${e})`)
+            .join(" ")
+            .slice(0, 240) || "-"
+
+        stretchXInfoEl.textContent = state.stretchX.length ? fmtIntervals(state.stretchX) : "-"
+        stretchYInfoEl.textContent = state.stretchY.length ? fmtIntervals(state.stretchY) : "-"
+        paddingInfoEl.textContent = state.trimmedCanvas
+          ? `L${state.padding.left} T${state.padding.top} R${state.padding.right} B${state.padding.bottom}`
+          : "-"
+      }
+
+      function clampRange(start, end, maxExclusive) {
+        const max = Math.max(1, Math.floor(maxExclusive))
+        let s = clampInt(start, 0, max)
+        let e = clampInt(end, 0, max)
+        if (e <= s) e = Math.min(max, s + 1)
+        if (s >= max) s = Math.max(0, max - 1)
+        if (e <= s) e = Math.min(max, s + 1)
+        return [s, e]
+      }
+
+      function getSingleInterval(intervals, maxExclusive) {
+        if (!intervals?.length) return [0, Math.max(1, maxExclusive)]
+        const s = intervals[0][0]
+        const e = intervals[intervals.length - 1][1]
+        return clampRange(s, e, maxExclusive)
+      }
+
+      function getContentIntervalFromPadding(padStart, padEnd, maxExclusive) {
+        const s = clampInt(padStart, 0, maxExclusive)
+        const e = clampInt(maxExclusive - padEnd, 0, maxExclusive)
+        return clampRange(s, e, maxExclusive)
+      }
+
+      function setEditorConstraints() {
+        const w = Math.max(1, state.trimmedW)
+        const h = Math.max(1, state.trimmedH)
+
+        const setMax = (startEl, endEl, startR, endR, max) => {
+          startEl.max = String(max - 1)
+          endEl.max = String(max)
+          startR.max = String(max - 1)
+          endR.max = String(max)
+        }
+
+        setMax(sxStartEl, sxEndEl, sxStartREl, sxEndREl, w)
+        setMax(cxStartEl, cxEndEl, cxStartREl, cxEndREl, w)
+        setMax(syStartEl, syEndEl, syStartREl, syEndREl, h)
+        setMax(cyStartEl, cyEndEl, cyStartREl, cyEndREl, h)
+      }
+
+      function readEditorValues() {
+        const w = Math.max(1, state.trimmedW)
+        const h = Math.max(1, state.trimmedH)
+        const [sx0, sx1] = clampRange(Number(sxStartEl.value), Number(sxEndEl.value), w)
+        const [sy0, sy1] = clampRange(Number(syStartEl.value), Number(syEndEl.value), h)
+        const [cx0, cx1] = clampRange(Number(cxStartEl.value), Number(cxEndEl.value), w)
+        const [cy0, cy1] = clampRange(Number(cyStartEl.value), Number(cyEndEl.value), h)
+        return { sx0, sx1, sy0, sy1, cx0, cx1, cy0, cy1 }
+      }
+
+      function writeEditorValues(v) {
+        const setPair = (aEl, bEl, aR, bR, a, b) => {
+          aEl.value = String(a)
+          bEl.value = String(b)
+          aR.value = String(a)
+          bR.value = String(b)
+        }
+        setPair(sxStartEl, sxEndEl, sxStartREl, sxEndREl, v.sx0, v.sx1)
+        setPair(syStartEl, syEndEl, syStartREl, syEndREl, v.sy0, v.sy1)
+        setPair(cxStartEl, cxEndEl, cxStartREl, cxEndREl, v.cx0, v.cx1)
+        setPair(cyStartEl, cyEndEl, cyStartREl, cyEndREl, v.cy0, v.cy1)
+      }
+
+      function applyEditorToState() {
+        if (!state.trimmedCanvas) return
+        const v = readEditorValues()
+        writeEditorValues(v)
+
+        state.stretchX = [[v.sx0, v.sx1]]
+        state.stretchY = [[v.sy0, v.sy1]]
+        state.padding.left = v.cx0
+        state.padding.right = Math.max(0, state.trimmedW - v.cx1)
+        state.padding.top = v.cy0
+        state.padding.bottom = Math.max(0, state.trimmedH - v.cy1)
+
+        state.segmentsX = buildSegments(state.trimmedW, state.stretchX)
+        state.segmentsY = buildSegments(state.trimmedH, state.stretchY)
+
+        updateInfo()
+        renderAll()
+        renderEditorCanvas()
+      }
+
+      function initEditorFromState() {
+        if (!state.trimmedCanvas) return
+        setEditorConstraints()
+
+        const [sx0, sx1] = getSingleInterval(state.stretchX, state.trimmedW)
+        const [sy0, sy1] = getSingleInterval(state.stretchY, state.trimmedH)
+        const [cx0, cx1] = getContentIntervalFromPadding(
+          state.padding.left,
+          state.padding.right,
+          state.trimmedW
+        )
+        const [cy0, cy1] = getContentIntervalFromPadding(
+          state.padding.top,
+          state.padding.bottom,
+          state.trimmedH
+        )
+
+        writeEditorValues({ sx0, sx1, sy0, sy1, cx0, cx1, cy0, cy1 })
+        renderEditorCanvas()
+      }
+
+      function renderEditorCanvas() {
+        const c = editorCanvas
+        const ctx = c.getContext("2d")
+        const rawW = state.rawCanvas?.width || 10
+        const rawH = state.rawCanvas?.height || 10
+
+        const displayW = Math.min(320, rawW)
+        const scale = displayW / Math.max(1, rawW)
+        const outW = Math.max(1, Math.round(rawW * scale))
+        const outH = Math.max(1, Math.round(rawH * scale))
+        const dpr = window.devicePixelRatio || 1
+        c.width = Math.max(1, Math.round(outW * dpr))
+        c.height = Math.max(1, Math.round(outH * dpr))
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        ctx.clearRect(0, 0, outW, outH)
+
+        ctx.fillStyle = "rgba(0,0,0,0.12)"
+        ctx.fillRect(0, 0, outW, outH)
+
+        if (!state.trimmedCanvas) return
+
+        ctx.save()
+        ctx.scale(scale, scale)
+        ctx.clearRect(0, 0, rawW, rawH)
+
+        ctx.drawImage(state.trimmedCanvas, 1, 1)
+
+        const v = readEditorValues()
+
+        const drawLine = (x0, y0, x1, y1, color) => {
+          ctx.strokeStyle = color
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(x0 + 0.5, y0 + 0.5)
+          ctx.lineTo(x1 + 0.5, y1 + 0.5)
+          ctx.stroke()
+        }
+
+        const drawHandle = (x, y, fill, stroke) => {
+          ctx.fillStyle = fill
+          ctx.strokeStyle = stroke
+          ctx.lineWidth = 1
+          ctx.fillRect(x - 2, y - 2, 5, 5)
+          ctx.strokeRect(x - 2.5, y - 2.5, 6, 6)
+        }
+
+        drawLine(v.sx0 + 1, 0, v.sx1, 0, "rgba(124, 242, 208, 1)")
+        drawLine(0, v.sy0 + 1, 0, v.sy1, "rgba(124, 242, 208, 1)")
+
+        drawLine(v.cx0 + 1, rawH - 1, v.cx1, rawH - 1, "rgba(167, 139, 250, 1)")
+        drawLine(rawW - 1, v.cy0 + 1, rawW - 1, v.cy1, "rgba(167, 139, 250, 1)")
+
+        drawHandle(v.sx0 + 1, 0, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(v.sx1, 0, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(0, v.sy0 + 1, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(0, v.sy1, "rgba(124, 242, 208, 0.9)", "rgba(0,0,0,0.35)")
+
+        drawHandle(v.cx0 + 1, rawH - 1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(v.cx1, rawH - 1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(rawW - 1, v.cy0 + 1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
+        drawHandle(rawW - 1, v.cy1, "rgba(167, 139, 250, 0.9)", "rgba(0,0,0,0.35)")
+
+        ctx.strokeStyle = "rgba(255,255,255,0.25)"
+        ctx.strokeRect(0.5, 0.5, rawW - 1, rawH - 1)
+
+        ctx.restore()
+      }
+
+      function normalizeEditorValues(values) {
+        const w = Math.max(1, state.trimmedW)
+        const h = Math.max(1, state.trimmedH)
+
+        const out = { ...values }
+        ;[out.sx0, out.sx1] = clampRange(out.sx0, out.sx1, w)
+        ;[out.sy0, out.sy1] = clampRange(out.sy0, out.sy1, h)
+        ;[out.cx0, out.cx1] = clampRange(out.cx0, out.cx1, w)
+        ;[out.cy0, out.cy1] = clampRange(out.cy0, out.cy1, h)
+        return out
+      }
+
+      function editorRawPointFromEvent(e) {
+        const rect = editorCanvas.getBoundingClientRect()
+        const rawW = state.rawCanvas?.width || 10
+        const rawH = state.rawCanvas?.height || 10
+        const x = ((e.clientX - rect.left) / Math.max(1, rect.width)) * rawW
+        const y = ((e.clientY - rect.top) / Math.max(1, rect.height)) * rawH
+        return { x, y, rawW, rawH }
+      }
+
+      function hitTestEditorHandles(x, y) {
+        if (!state.trimmedCanvas) return null
+        const v = readEditorValues()
+        const rawW = state.rawCanvas?.width || state.trimmedW + 2
+        const rawH = state.rawCanvas?.height || state.trimmedH + 2
+
+        const handles = [
+          { key: "sx0", axis: "x", px: v.sx0 + 1, py: 0, cursor: "ew-resize" },
+          { key: "sx1", axis: "x", px: v.sx1, py: 0, cursor: "ew-resize" },
+          { key: "sy0", axis: "y", px: 0, py: v.sy0 + 1, cursor: "ns-resize" },
+          { key: "sy1", axis: "y", px: 0, py: v.sy1, cursor: "ns-resize" },
+          { key: "cx0", axis: "x", px: v.cx0 + 1, py: rawH - 1, cursor: "ew-resize" },
+          { key: "cx1", axis: "x", px: v.cx1, py: rawH - 1, cursor: "ew-resize" },
+          { key: "cy0", axis: "y", px: rawW - 1, py: v.cy0 + 1, cursor: "ns-resize" },
+          { key: "cy1", axis: "y", px: rawW - 1, py: v.cy1, cursor: "ns-resize" },
+        ]
+
+        const threshold = 6
+        let best = null
+        let bestD = Infinity
+        for (const h of handles) {
+          const dx = x - h.px
+          const dy = y - h.py
+          const d = Math.hypot(dx, dy)
+          if (d < bestD) {
+            bestD = d
+            best = h
+          }
+        }
+        if (!best || bestD > threshold) return null
+        return best
+      }
+
+      function applyDragToEditor(handle, x, y) {
+        const v0 = readEditorValues()
+        const rawW = state.rawCanvas?.width || state.trimmedW + 2
+        const rawH = state.rawCanvas?.height || state.trimmedH + 2
+
+        const roundClamp = (n, min, max) => clampInt(Math.round(n), min, max)
+        const w = Math.max(1, state.trimmedW)
+        const h = Math.max(1, state.trimmedH)
+
+        const v = { ...v0 }
+        if (handle.axis === "x") {
+          const px = Math.max(0, Math.min(x, rawW - 1))
+          if (handle.key === "sx0") v.sx0 = roundClamp(px - 1, 0, w - 1)
+          if (handle.key === "sx1") v.sx1 = roundClamp(px, 1, w)
+          if (handle.key === "cx0") v.cx0 = roundClamp(px - 1, 0, w - 1)
+          if (handle.key === "cx1") v.cx1 = roundClamp(px, 1, w)
+        } else {
+          const py = Math.max(0, Math.min(y, rawH - 1))
+          if (handle.key === "sy0") v.sy0 = roundClamp(py - 1, 0, h - 1)
+          if (handle.key === "sy1") v.sy1 = roundClamp(py, 1, h)
+          if (handle.key === "cy0") v.cy0 = roundClamp(py - 1, 0, h - 1)
+          if (handle.key === "cy1") v.cy1 = roundClamp(py, 1, h)
+        }
+
+        const v2 = normalizeEditorValues(v)
+        writeEditorValues(v2)
+        applyEditorToState()
+      }
+
+      function exportNinePng() {
+        if (!state.trimmedCanvas) return
+        const rawW = state.trimmedW + 2
+        const rawH = state.trimmedH + 2
+        const c = document.createElement("canvas")
+        c.width = rawW
+        c.height = rawH
+        const ctx = c.getContext("2d")
+        ctx.clearRect(0, 0, rawW, rawH)
+        ctx.drawImage(state.trimmedCanvas, 1, 1)
+
+        const v = readEditorValues()
+        ctx.fillStyle = "rgba(0,0,0,1)"
+
+        for (let x = v.sx0 + 1; x <= v.sx1; x++) ctx.fillRect(x, 0, 1, 1)
+        for (let y = v.sy0 + 1; y <= v.sy1; y++) ctx.fillRect(0, y, 1, 1)
+
+        for (let x = v.cx0 + 1; x <= v.cx1; x++) ctx.fillRect(x, rawH - 1, 1, 1)
+        for (let y = v.cy0 + 1; y <= v.cy1; y++) ctx.fillRect(rawW - 1, y, 1, 1)
+
+        const a = document.createElement("a")
+        const base = (state.fileName || "ninepatch").replace(/\.png$/i, "")
+        a.download = `${base}.9.png`
+        a.href = c.toDataURL("image/png")
+        a.click()
+      }
+
+      function clearAll() {
+        previewsEl.innerHTML = ""
+        state.cards = []
+
+        state.fileName = ""
+        state.rawW = 0
+        state.rawH = 0
+        state.rawCanvas = null
+        state.trimmedW = 0
+        state.trimmedH = 0
+        state.trimmedCanvas = null
+        state.stretchX = []
+        state.stretchY = []
+        state.padding = { left: 0, top: 0, right: 0, bottom: 0 }
+        state.segmentsX = []
+        state.segmentsY = []
+        state.lastRender = null
+        state.original = null
+
+        fileLabel.textContent = "未选择图片"
+        fileInput.value = ""
+        setWarn("")
+        updateInfo()
+        setActionsEnabled(false)
+        setEditorEnabled(false)
+        renderEditorCanvas()
+      }
+
+      function syncNineShadow() {
+        document.body.classList.toggle("no-nine-shadow", !nineShadowToggle.checked)
+      }
+
+      function syncClipBox() {
+        document.body.classList.toggle("clip-nine-box", Boolean(clipBoxToggle.checked))
+      }
+
+      function renderAll() {
+        if (!state.trimmedCanvas) return
+        state.lastRender = null
+        for (const card of state.cards) {
+          const res = renderCard(card)
+          if (card.id === "main") state.lastRender = res
+        }
+      }
+
+      function syncTextVisibility() {
+        for (const card of state.cards) {
+          card.textEl.style.display = showTextToggle.checked ? "" : "none"
+        }
+      }
+
+      function syncSampleText() {
+        state.sampleText = sampleTextInput.value ?? ""
+        for (const card of state.cards) {
+          card.textEl.textContent = state.sampleText
+        }
+      }
+
+      function setBackgroundMode(mode) {
+        previewArea.classList.remove("bg-light", "bg-dark", "bg-checker")
+        previewArea.classList.add(`bg-${mode}`)
+      }
+
+      function bootCards() {
+        previewsEl.innerHTML = ""
+        state.cards = []
+
+        const mw = clampInt(Number(wInput.value), 1, 9999)
+        const mh = clampInt(Number(hInput.value), 1, 9999)
+
+        const main = ensureCard("main", "实时预览", mw, mh)
+        state.cards.push(main)
+
+        const presets = [
+          ["按钮 S", 140, 44],
+          ["按钮 M", 200, 56],
+          ["卡片", 320, 140],
+          ["对话框", 420, 220],
+        ]
+
+        for (let i = 0; i < presets.length; i++) {
+          const [name, w, h] = presets[i]
+          state.cards.push(ensureCard(`p${i}`, name, w, h))
+        }
+
+        syncTextVisibility()
+      }
+
+      async function handleFile(file) {
+        if (!file) return
+        if (!file.type.includes("png")) {
+          setWarn("仅支持 PNG 图片。")
+          setActionsEnabled(false)
+          setEditorEnabled(false)
+          return
+        }
+
+        const url = URL.createObjectURL(file)
+        const img = new Image()
+        img.decoding = "async"
+        img.src = url
+        await img.decode()
+        URL.revokeObjectURL(url)
+
+        state.fileName = file.name
+        fileLabel.textContent = file.name
+
+        const rawCanvas = document.createElement("canvas")
+        rawCanvas.width = img.naturalWidth
+        rawCanvas.height = img.naturalHeight
+        rawCanvas.getContext("2d").drawImage(img, 0, 0)
+
+        state.rawW = rawCanvas.width
+        state.rawH = rawCanvas.height
+        state.rawCanvas = rawCanvas
+
+        if (state.rawW < 3 || state.rawH < 3) {
+          setWarn("图片尺寸过小，无法按 9-Patch 规则解析（至少 3×3）。")
+          state.trimmedCanvas = null
+          updateInfo()
+          setActionsEnabled(false)
+          setEditorEnabled(false)
+          return
+        }
+
+        const parsed = parseNinePatch(rawCanvas)
+        state.trimmedCanvas = parsed.trimmedCanvas
+        state.trimmedW = parsed.trimmedW
+        state.trimmedH = parsed.trimmedH
+        state.stretchX = parsed.stretchX
+        state.stretchY = parsed.stretchY
+        state.padding = parsed.padding
+        state.segmentsX = buildSegments(state.trimmedW, state.stretchX)
+        state.segmentsY = buildSegments(state.trimmedH, state.stretchY)
+        state.original = {
+          stretchX: parsed.stretchX.map((p) => [...p]),
+          stretchY: parsed.stretchY.map((p) => [...p]),
+          padding: { ...parsed.padding },
+        }
+
+        const msg = []
+        if (!parsed.stretchX.length && !parsed.stretchY.length) msg.push("未检测到 stretch 标记，已按整图可拉伸兜底。")
+        if (state.segmentsX.length === 0 || state.segmentsY.length === 0) msg.push("分段结果为空，图片可能不符合规则。")
+        setWarn(msg.join(" "))
+
+        bootCards()
+        updateInfo()
+        renderAll()
+        setActionsEnabled(true)
+        setEditorEnabled(true)
+        initEditorFromState()
+      }
+
+      function createSampleRawCanvas() {
+        const rawW = 74
+        const rawH = 46
+        const c = document.createElement("canvas")
+        c.width = rawW
+        c.height = rawH
+        const ctx = c.getContext("2d")
+        ctx.clearRect(0, 0, rawW, rawH)
+
+        const x = 1
+        const y = 1
+        const w = rawW - 2
+        const h = rawH - 2
+
+        const r = 14
+        ctx.beginPath()
+        ctx.moveTo(x + r, y)
+        ctx.arcTo(x + w, y, x + w, y + h, r)
+        ctx.arcTo(x + w, y + h, x, y + h, r)
+        ctx.arcTo(x, y + h, x, y, r)
+        ctx.arcTo(x, y, x + w, y, r)
+        ctx.closePath()
+        ctx.fillStyle = "rgba(255, 255, 255, 0.92)"
+        ctx.fill()
+
+        ctx.lineWidth = 2
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.22)"
+        ctx.stroke()
+
+        ctx.fillStyle = "rgba(0,0,0,1)"
+
+        const markPixel = (mx, my) => ctx.fillRect(mx, my, 1, 1)
+
+        for (let mx = 18; mx <= rawW - 19; mx++) markPixel(mx, 0)
+        for (let my = 14; my <= rawH - 15; my++) markPixel(0, my)
+
+        for (let mx = 22; mx <= rawW - 23; mx++) markPixel(mx, rawH - 1)
+        for (let my = 16; my <= rawH - 17; my++) markPixel(rawW - 1, my)
+
+        return c
+      }
+
+      async function useSample() {
+        const rawCanvas = createSampleRawCanvas()
+        state.fileName = "sample.9.png"
+        fileLabel.textContent = state.fileName
+        state.rawW = rawCanvas.width
+        state.rawH = rawCanvas.height
+        state.rawCanvas = rawCanvas
+
+        const parsed = parseNinePatch(rawCanvas)
+        state.trimmedCanvas = parsed.trimmedCanvas
+        state.trimmedW = parsed.trimmedW
+        state.trimmedH = parsed.trimmedH
+        state.stretchX = parsed.stretchX
+        state.stretchY = parsed.stretchY
+        state.padding = parsed.padding
+        state.segmentsX = buildSegments(state.trimmedW, state.stretchX)
+        state.segmentsY = buildSegments(state.trimmedH, state.stretchY)
+        state.original = {
+          stretchX: parsed.stretchX.map((p) => [...p]),
+          stretchY: parsed.stretchY.map((p) => [...p]),
+          padding: { ...parsed.padding },
+        }
+
+        setWarn("")
+        bootCards()
+        updateInfo()
+        renderAll()
+        setActionsEnabled(true)
+        setEditorEnabled(true)
+        initEditorFromState()
+      }
+
+      function addPreviewFromInputs() {
+        if (!state.trimmedCanvas) {
+          setWarn("请先导入 .9.png 再添加预览。")
+          return
+        }
+        const w = clampInt(Number(wInput.value), 1, 9999)
+        const h = clampInt(Number(hInput.value), 1, 9999)
+        const id = `c${Date.now()}`
+        const card = ensureCard(id, "自定义", w, h)
+        state.cards.push(card)
+        renderCard(card)
+      }
+
+      function exportCurrent() {
+        if (!state.lastRender?.outCanvas) {
+          if (!state.trimmedCanvas) setWarn("请先导入 .9.png 再导出。")
+          return
+        }
+        const a = document.createElement("a")
+        const base = (state.fileName || "ninepatch").replace(/\.png$/i, "")
+        const w = clampInt(Number(wInput.value), 1, 9999)
+        const h = clampInt(Number(hInput.value), 1, 9999)
+        a.download = `${base}_${w}x${h}.png`
+        a.href = state.lastRender.outCanvas.toDataURL("image/png")
+        a.click()
+      }
+
+      pickBtn.addEventListener("click", () => fileInput.click())
+      sampleBtn.addEventListener("click", () => useSample())
+      fileInput.addEventListener("change", (e) => handleFile(e.target.files?.[0]))
+
+      ;["dragenter", "dragover"].forEach((t) => {
+        dropZone.addEventListener(t, (e) => {
+          e.preventDefault()
+          dropZone.classList.add("drag")
+        })
+      })
+      ;["dragleave", "drop"].forEach((t) => {
+        dropZone.addEventListener(t, (e) => {
+          e.preventDefault()
+          dropZone.classList.remove("drag")
+        })
+      })
+      dropZone.addEventListener("drop", (e) => {
+        const file = e.dataTransfer?.files?.[0]
+        handleFile(file)
+      })
+
+      function syncMainSize() {
+        const main = state.cards.find((c) => c.id === "main")
+        if (!main) return
+        const w = clampInt(Number(wInput.value), 1, 9999)
+        const h = clampInt(Number(hInput.value), 1, 9999)
+        updateCardSize(main, w, h)
+      }
+
+      ;[wInput, hInput].forEach((el) => {
+        el.addEventListener("input", () => {
+          syncMainSize()
+          renderAll()
+        })
+      })
+
+      sampleTextInput.addEventListener("input", () => syncSampleText())
+      showTextToggle.addEventListener("change", () => syncTextVisibility())
+      nineShadowToggle.addEventListener("change", () => syncNineShadow())
+      clipBoxToggle.addEventListener("change", () => syncClipBox())
+
+      ;[showContentToggle, showStretchToggle, smoothingToggle].forEach((el) => {
+        el.addEventListener("change", () => renderAll())
+      })
+
+      const editorInputs = [
+        sxStartEl,
+        sxEndEl,
+        syStartEl,
+        syEndEl,
+        cxStartEl,
+        cxEndEl,
+        cyStartEl,
+        cyEndEl,
+        sxStartREl,
+        sxEndREl,
+        syStartREl,
+        syEndREl,
+        cxStartREl,
+        cxEndREl,
+        cyStartREl,
+        cyEndREl,
+      ]
+
+      for (const el of editorInputs) {
+        el.addEventListener("input", () => {
+          const v = readEditorValues()
+          writeEditorValues(v)
+          applyEditorToState()
+        })
+      }
+
+      let editorDragHandle = null
+      let prevUserSelect = ""
+
+      editorCanvas.addEventListener("pointerdown", (e) => {
+        if (editorFieldset.disabled) return
+        const p = editorRawPointFromEvent(e)
+        const h = hitTestEditorHandles(p.x, p.y)
+        if (!h) return
+        editorDragHandle = h
+        prevUserSelect = document.body.style.userSelect
+        document.body.style.userSelect = "none"
+        editorCanvas.setPointerCapture(e.pointerId)
+        applyDragToEditor(h, p.x, p.y)
+        e.preventDefault()
+      })
+
+      editorCanvas.addEventListener("pointermove", (e) => {
+        if (editorFieldset.disabled) return
+        const p = editorRawPointFromEvent(e)
+        if (editorDragHandle) {
+          applyDragToEditor(editorDragHandle, p.x, p.y)
+          return
+        }
+        const h = hitTestEditorHandles(p.x, p.y)
+        editorCanvas.style.cursor = h ? h.cursor : "crosshair"
+      })
+
+      editorCanvas.addEventListener("pointerup", (e) => {
+        if (!editorDragHandle) return
+        editorDragHandle = null
+        document.body.style.userSelect = prevUserSelect
+        try {
+          editorCanvas.releasePointerCapture(e.pointerId)
+        } catch {}
+      })
+
+      editorCanvas.addEventListener("pointercancel", (e) => {
+        editorDragHandle = null
+        document.body.style.userSelect = prevUserSelect
+        try {
+          editorCanvas.releasePointerCapture(e.pointerId)
+        } catch {}
+      })
+
+      resetMarksBtn.addEventListener("click", () => {
+        if (!state.original || !state.trimmedCanvas) return
+        state.stretchX = state.original.stretchX.map((p) => [...p])
+        state.stretchY = state.original.stretchY.map((p) => [...p])
+        state.padding = { ...state.original.padding }
+        state.segmentsX = buildSegments(state.trimmedW, state.stretchX)
+        state.segmentsY = buildSegments(state.trimmedH, state.stretchY)
+        initEditorFromState()
+        updateInfo()
+        renderAll()
+      })
+
+      export9Btn.addEventListener("click", () => exportNinePng())
+
+      bgSelect.addEventListener("change", () => setBackgroundMode(bgSelect.value))
+
+      addPreviewBtn.addEventListener("click", () => addPreviewFromInputs())
+      exportBtn.addEventListener("click", () => exportCurrent())
+
+      resetBtn.addEventListener("click", () => {
+        clearAll()
+      })
+
+      setBackgroundMode(bgSelect.value)
+      bootCards()
+      setActionsEnabled(false)
+      setEditorEnabled(false)
+      syncNineShadow()
+      syncClipBox()
+      syncSampleText()
+      renderEditorCanvas()
+    </script>
+  </body>
+</html>
